@@ -1,0 +1,12 @@
+# Generated datasets
+*_puzzles_*.npy
+*_solutions_*.npy
+*.npy
+
+# Model checkpoints
+*.pt
+*.pth
+
+# Logs (keep structure but not large files)
+logs/*/examples_*.npy
+logs/*/animation_*.gif

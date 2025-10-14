@@ -1,0 +1,13 @@
+{
+  "experiment_name": "trm_4x4_baseline",
+  "total_epochs": 60,
+  "best_val_acc": 0.9177,
+  "best_val_epoch": 37,
+  "final_train_acc": 0.9189,
+  "final_val_acc": 0.9013,
+  "final_train_loss": 0.15063018270265371,
+  "final_val_loss": 0.2571190522073176,
+  "total_training_time": 9697.608556985855,
+  "avg_time_per_epoch": 161.62680928309757,
+  "generalization_gap": 0.01760000000000006
+}
