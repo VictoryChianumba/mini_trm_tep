@@ -100,7 +100,7 @@ def train_step_by_step(
                 
                 # Backward immediately (frees graph after this)
                 retrain =  (step_idx < n_supervision_steps -1)
-                step_loss.backward(retrain_graph = retrain)
+                step_loss.backward(retain_graph = retrain)
                 
                 # Accumulate loss for logging
                 total_loss += step_loss.item()
