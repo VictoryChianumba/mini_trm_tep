@@ -96,6 +96,8 @@ def train_with_logging(
             puzzles = puzzles.to(device)
             solutions = solutions.to(device)
             
+            # In training loop, replace compute_loss + backward with:
+            
             optimizer.zero_grad()
             
             predictions, q_values, _, _ = model(

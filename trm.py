@@ -57,12 +57,11 @@ class TinyRecursiveModel(nn.Module):
         nn.init.normal_(self.q_head.weight, std=0.02)
         
     def forward(self, x, y=None, z=None, n_supervision_steps=16, training=True):
+        """Original forward - keep for compatibility"""
         batch_size = x.shape[0]
         
-        # Embed input
         x_embedded = self.input_embedding(x)
         
-        # Initialize y and z
         if y is None:
             y = self.y_init.expand(batch_size, -1, -1).clone()
         if z is None:
@@ -73,15 +72,45 @@ class TinyRecursiveModel(nn.Module):
         
         for step in range(n_supervision_steps):
             y, z, y_logits, q = self.deep_recursion(x_embedded, y, z)
-            
             predictions.append(y_logits)
             q_values.append(q)
             
-        #    if not training:
-        #  if torch.sigmoid(q).mean() > 0.5:
-         #           break
+            if not training:
+                if torch.sigmoid(q).mean() > 0.5:
+                    break
         
         return predictions, q_values, y, z
+    
+    def forward_single_step(self, x_embedded, y, z):
+        """
+        Run ONE supervision step and return results.
+        Used for step-by-step training to save memory.
+        
+        Args:
+            x_embedded: [B, L, D] - already embedded input
+            y: [B, L, D] - current answer state
+            z: [B, L, D] - current reasoning state
+            
+        Returns:
+            y: [B, L, D] - updated answer (WITH GRADIENTS)
+            z: [B, L, D] - updated reasoning (WITH GRADIENTS)
+            y_logits: [B, L, vocab_size] - predictions (WITH GRADIENTS)
+            q: [B, 1] - halt prediction (WITH GRADIENTS)
+        """
+        # Deep recursion (T-1 without grad, 1 with grad)
+        with torch.no_grad():
+            for _ in range(self.T_cycles - 1):
+                y, z = self.latent_recursion(x_embedded, y, z)
+        
+        # Last cycle with gradients
+        y, z = self.latent_recursion(x_embedded, y, z)
+        
+        # Compute outputs (WITH gradients)
+        y_logits = self.output_head(y)
+        q = self.q_head(y.mean(dim=1))
+        
+        # DON'T detach here - we need gradients for this step
+        return y, z, y_logits, q
     
     def deep_recursion(self, x, y, z):
         # T-1 cycles without gradients

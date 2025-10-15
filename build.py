@@ -29,7 +29,7 @@ class EMA:
         # Initialize shadow parameters
         for name, param in model.named_parameters():
             if param.requires_grad:
-                self.shadow[name] = param.data.clone()
+                self.shadow[name] = param.data.cpu().clone()
     
     def update(self):
         """Update shadow parameters"""
@@ -37,9 +37,9 @@ class EMA:
             if param.requires_grad:
                 # Add new parameters if they don't exist yet
                 if name not in self.shadow:
-                    self.shadow[name] = param.data.clone()
+                    self.shadow[name] = param.data.cpu().clone()
                 else:
-                    self.shadow[name] = self.decay * self.shadow[name] + (1 - self.decay) * param.data
+                    self.shadow[name] = self.decay * self.shadow[name] + (1 - self.decay) * param.data.cpu()
     
     def apply_shadow(self):
         """Apply shadow parameters to model"""
@@ -47,7 +47,7 @@ class EMA:
             if param.requires_grad:
                 self.backup[name] = param.data.clone()
                 if name in self.shadow:
-                    param.data = self.shadow[name]
+                    param.data = self.shadow[name].to(param.device) 
     
     def restore(self):
         """Restore original parameters"""
