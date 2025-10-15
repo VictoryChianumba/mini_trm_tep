@@ -90,7 +90,7 @@ def train_step_by_step(
                     solutions.reshape(-1)
                 )
                 
-                # Halting loss
+                # Halting loss()
                 pred_tokens = y_logits.argmax(dim=-1)
                 is_correct = (pred_tokens == solutions).all(dim=1).float()
                 halt_loss = F.binary_cross_entropy_with_logits(q.squeeze(-1), is_correct)
@@ -99,7 +99,8 @@ def train_step_by_step(
                 step_loss = (pred_loss + halt_loss) / n_supervision_steps
                 
                 # Backward immediately (frees graph after this)
-                step_loss.backward()
+                retrain =  (step_idx < n_supervision_steps -1)
+                step_loss.backward(retrain_graph = retrain)
                 
                 # Accumulate loss for logging
                 total_loss += step_loss.item()
